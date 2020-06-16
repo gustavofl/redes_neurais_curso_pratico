@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+from plot_rn_2d import PlotRN_2D
 import util
 
 class Perceptron:
@@ -9,6 +10,9 @@ class Perceptron:
         self.pesos = np.random.rand(qnt_entradas)
         self.epoca = 0
         self.taxa_aprendizado = taxa_aprendizado
+        self.fator_normalizacao = None
+
+        self.plot_rn = PlotRN_2D(self)
     
     def feedforward(self, x):
         return x.dot(np.transpose(self.pesos))
@@ -17,31 +21,12 @@ class Perceptron:
         # degrau bipolar
         return (u>=0)*2-1
     
-    def construir_reta_aprendida(self):
-        w0,w1,w2 = self.pesos
-
-        r_x = [-2,2]
-        r_y = [0,0]
-
-        r_y[0] = -w1/w2 * r_x[0] + w0/w2
-        r_y[1] = -w1/w2 * r_x[1] + w0/w2
-
-        return r_x,r_y
-    
-    def construir_plano_aprendido(self):
-        xx,yy = np.meshgrid( np.arange(-0.14,0.22,0.01) , np.arange(-0.02,0.10,0.01) )
-
-        w0,w1,w2,w3 = self.pesos
-
-        z = ( - w1/w3 * xx - w2/w3 * yy + w0/w3 )
-
-        return xx,yy,z
-
     def salvar(self, caminho):
         dados = {
             'pesos': self.pesos,
             'epoca': self.epoca,
             'taxa_aprendizado': self.taxa_aprendizado,
+            'fator_normalizacao': self.fator_normalizacao,
         }
 
         util.salvar_dados(dados, caminho)
@@ -54,11 +39,14 @@ class Perceptron:
         rn.pesos = dados['pesos']
         rn.epoca = dados['epoca']
         rn.taxa_aprendizado = dados['taxa_aprendizado']
+        rn.fator_normalizacao = dados['fator_normalizacao']
 
         return rn
 
     def treino(self, x, d, verbose=False, salvar_imagens=False):
-        x,fator = util.normalizar(x)
+        x = np.copy(x)
+
+        x,self.fator_normalizacao = util.normalizar(x, self.fator_normalizacao)
 
         possui_erro = True
         while(possui_erro and self.epoca <= 2000):
@@ -72,32 +60,26 @@ class Perceptron:
                 possui_erro = True
 
             if(verbose):
+                w0,w1,w2 = self.pesos
+
                 erro = (d - y).dot(x)
-                print(self.epoca, erro.sum(), erro)
-            
-            """ if(salvar_imagens and self.epoca%10 == 0):
-                reta_aprendida = self.construir_reta_aprendida()
 
-                util.plotar_dados_2d(
-                    pontos=x, 
-                    retas=[reta_aprendida], 
-                    classes_pontos=d, 
-                    imagem_destino='projeto/treinamento/epoca_%04d.png'%self.epoca) """
-            
-            if(salvar_imagens and self.epoca%10 == 0):
-                plano = self.construir_plano_aprendido()
+                print(self.epoca, erro.sum(), -w1/w2, w0/w2)
 
-                util.plotar_dados_3d(
-                    pontos=x, 
-                    classes_pontos=d, 
-                    planos=[plano], 
-                    imagem_destino='projeto/treinamento/epoca_%04d.png'%self.epoca,
-                    limite=None)
+
+            if(salvar_imagens and self.epoca%300 == 0):
+                # falta implementar
+                
+                # self.plot_rn.plotar(x=x, d=d, mostrar=1)
+                # self.plot_rn.plotar_classes_aprendidas(imagem_destino='teste.png')
+                pass
             
             self.epoca += 1
     
     def classificar(self, x, salvar_imagem=False):
-        x,fator = util.normalizar(x)
+        x = np.copy(x)
+
+        x,fator = util.normalizar(x,self.fator_normalizacao)
 
         u = self.feedforward(x)
         y = self.ativacao(u)

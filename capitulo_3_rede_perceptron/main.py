@@ -1,102 +1,61 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.patches import Polygon
+from matplotlib.collections import PatchCollection
 
 from perceptron import Perceptron
 import util
 
-def f(x, y):
-    # RETA: y = -x
-    return y > -x
+def equacao_reta(x, y):
+    # RETA: y = 0.25*x + 0.5
+    return y > -1*x + 5
 
-def ativacao(u):
+def ativacao_reta(x, y):
     # degrau bipolar
-    return u*2-1
+    return equacao_reta(x,y)*2-1
 
-def gerar_dataset(arquivo_destino, tamanho=300):
-    x = np.random.rand(tamanho,3)*20-10
-    x[:,0] = -1
-
-    d = ativacao(f(x[:,1], x[:,2]))
-
-    util.salvar_dados({'x':x,'d':d}, arquivo_destino)
-
-def carregar_dataset(arquivo):
-    dados = util.carregar_dados(arquivo)
-    x = dados['x']
-    d = dados['d']
-
-    return x,d
+def gerar_datasets(sufixo):
+    util.gerar_dataset('reta_2/dataset_treino_%s.data'%str(sufixo), ativacao_reta, tamanho=300)
+    util.gerar_dataset('reta_2/dataset_teste_%s.data'%str(sufixo), ativacao_reta, tamanho=1500)
 
 def treinar_rede(dataset, rn=None):
     x,d = dataset
 
     if(rn == None):
-        while(True):
-            rn = Perceptron(qnt_entradas=len(x[0,:]))
-            rn.pesos = np.array([0.95,0.52,0.03,0.55])
-            print(rn.pesos)
-            repetir = input('Criar outra rede neural? (s/n) ')
-            if(repetir == 'n'):
-                break
+        rn = Perceptron(qnt_entradas=len(x[0,:]))
     
     pesos_iniciais = rn.pesos
 
-    rn.treino(x, d, verbose=1, salvar_imagens=True)
+    rn.treino(x, d, verbose=0, salvar_imagens=0)
 
-    print('Pesos iniciais:', pesos_iniciais)
-    print('Pesos finais:', rn.pesos)
-
-    print(rn.epoca, 'epocas de treinamento.')
+    rn.plot_rn.plotar_aprendizado(x,d,titulo='Treino (%d épocas de treinamento)'%rn.epoca)
 
     return rn
 
 def testar_rede(rn, dataset):
     x,d = dataset
-
-    y = rn.classificar(x, salvar_imagem=True)
-
-    """ erros = (y != d).sum()
-
-    erro_perc = erros/float(len(x[0,:])) """
-
-    """ reta_aprendida = rn.construir_reta_aprendida()
-    reta_funcao = [[-1,1],[1,-1]]
-
-
-    util.plotar_dados_2d(
-        pontos=x_norm, 
-        retas=[reta_aprendida, reta_funcao], 
-        imagem_destino='projeto/teste_t1.png') """
     
-    plano = rn.construir_plano_aprendido()
+    y = rn.classificar(x)
 
-    util.plotar_dados_3d(
-        pontos=x, 
-        planos=[plano], 
-        mostrar=1,
-        imagem_destino='projeto/teste_t6.png',
-        limite=None)
+    erro = (y != d).sum()
+    erro_perc = 100*erro/float(d.size)
 
-    print()
-
-    for yi in y:
-        print(yi)
+    rn.plot_rn.plotar_aprendizado(x,d,titulo='Teste (%.4f%% de erro)'%erro_perc)
 
 def main():
-    dataset_treino = carregar_dataset('projeto/dataset_treino_projeto.data')
-    dataset_teste = carregar_dataset('projeto/dataset_teste_projeto.data')
+    sufixo = '1'
 
-    rn = Perceptron.carregar('projeto/rn_projeto_t6.rn')
-    # rn = treinar_rede(dataset_treino, rn=None)
-    # rn.salvar('projeto/rn_projeto_t5.rn')
-    testar_rede(rn, dataset_teste)
+    gerar_datasets(sufixo)
 
-def auditoria():
-    dataset_treino = carregar_dataset('projeto/dataset_treino_projeto.data')
+    dataset_treino = util.carregar_dataset('reta_2/dataset_treino_%s.data'%str(sufixo))
+    dataset_teste = util.carregar_dataset('reta_2/dataset_teste_%s.data'%str(sufixo))
+
+    # rn = Perceptron.carregar('reta_2/rn_reta_3.rn')
     
     rn = treinar_rede(dataset_treino, rn=None)
-    
+    rn.salvar('reta_2/rn_reta_%s.rn'%str(sufixo))
+
+    testar_rede(rn, dataset_teste)
+
 if __name__ == "__main__":
     main()
-    # auditoria()
-    # alterar_dataset()
