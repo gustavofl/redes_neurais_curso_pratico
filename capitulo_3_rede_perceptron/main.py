@@ -23,12 +23,10 @@ def treinar_rede(dataset, rn=None):
 
     if(rn == None):
         rn = Perceptron(qnt_entradas=len(x[0,:]))
-    
-    pesos_iniciais = rn.pesos
 
-    rn.treino(x, d, verbose=0, salvar_imagens=0)
+    rn.treino(x, d, verbose=1, guardar_historico=1)
 
-    rn.plot_rn.plotar_aprendizado(x,d,titulo='Treino (%d épocas de treinamento)'%rn.epoca)
+    rn.plotar_aprendizado_animacao(x,d,titulo='Treino (%d épocas de treinamento)'%rn.epoca)
 
     return rn
 
@@ -40,12 +38,12 @@ def testar_rede(rn, dataset):
     erro = (y != d).sum()
     erro_perc = 100*erro/float(d.size)
 
-    rn.plot_rn.plotar_aprendizado(x,d,titulo='Teste (%.4f%% de erro)'%erro_perc)
+    rn.plotar_aprendizado(x,d,titulo='Teste (%.4f%% de erro)'%erro_perc)
 
 def main():
     sufixo = '1'
 
-    gerar_datasets(sufixo)
+    # gerar_datasets(sufixo)
 
     dataset_treino = util.carregar_dataset('reta_2/dataset_treino_%s.data'%str(sufixo))
     dataset_teste = util.carregar_dataset('reta_2/dataset_teste_%s.data'%str(sufixo))
