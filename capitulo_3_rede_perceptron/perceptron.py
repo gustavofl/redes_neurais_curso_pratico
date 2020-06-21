@@ -58,9 +58,13 @@ class Perceptron:
 
         return y
     
-    def plotar_aprendizado_animacao(self, x=None, d=None, titulo=''):
+    def plotar_animacao(self, x=None, d=None, titulo=''):
         if(len(self.historico) > 0):
             self.plot_rn.plotar_animacao(x, d, titulo=titulo)
+    
+    def salvar_animacao(self, x=None, d=None, titulo='', nome_arquivo=''):
+        if(len(self.historico) > 0):
+            self.plot_rn.salvar_animacao(x, d, titulo=titulo, nome_arquivo=nome_arquivo)
 
     def plotar_aprendizado(self, x=None, d=None, titulo=''):
         self.plot_rn.plotar_aprendizado(x, d, titulo=titulo)

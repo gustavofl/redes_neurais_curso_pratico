@@ -1,5 +1,7 @@
-import matplotlib.pyplot as plt
 import numpy as np
+
+import matplotlib
+import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import matplotlib.patches as patches
 
@@ -12,6 +14,7 @@ class PlotRN_2D:
         self.buffer = buffer
     
     def plotar_aprendizado(self, x=None, d=None, titulo=''):
+        matplotlib.use('GTK3Agg')
         fig,ax,maior_valor_absoluto_dataset = self.iniciar_figura_e_plotar_dataset(x, d, titulo)
 
         self.plotar_classes_aprendidas(ax, maior_valor_absoluto_dataset, self.rn.pesos)
@@ -20,17 +23,44 @@ class PlotRN_2D:
         plt.close('all')
 
     def plotar_animacao(self, x=None, d=None, titulo=''):
+        matplotlib.use('GTK3Agg')
         fig,ax,maior_valor_absoluto_dataset = self.iniciar_figura_e_plotar_dataset(x, d, titulo)
     
         def func_animacao(i=0):
             pesos = self.buffer[i]
             return self.plotar_classes_aprendidas(ax, 1, pesos)
 
-        self.animacao = animation.FuncAnimation(fig, func_animacao, frames=len(self.buffer), 
+        animacao = animation.FuncAnimation(fig, func_animacao, frames=len(self.buffer), 
                                                 init_func=func_animacao, interval=50, blit=True, repeat=False)
         
         plt.show()
         plt.close('all')
+
+    def salvar_animacao(self, x=None, d=None, titulo='', nome_arquivo=''):
+        matplotlib.use('Agg')
+        fig,ax,maior_valor_absoluto_dataset = self.iniciar_figura_e_plotar_dataset(x, d, titulo)
+    
+        def func_animacao(i=0):
+            pesos = self.buffer[i]
+
+            func_animacao.patches[0].remove()
+            func_animacao.patches[1].remove()
+            func_animacao.patches = self.plotar_classes_aprendidas(ax, 1, pesos)
+
+            if((i+1)%(len(self.buffer)//4) == 0 or i == len(self.buffer)-1):
+                print('%d%%'%int(100*(i+1)/float(len(self.buffer))))
+
+            return func_animacao.patches
+
+        pesos = self.buffer[0]
+        func_animacao.patches = self.plotar_classes_aprendidas(ax, 1, pesos)
+
+        print('Salvando animação em arquivo')
+
+        animacao = animation.FuncAnimation(fig, func_animacao, frames=len(self.buffer), 
+                                            interval=50, blit=True, repeat=False)
+        
+        animacao.save(nome_arquivo)
     
     def iniciar_figura_e_plotar_dataset(self, x, y, titulo):
         fig = plt.figure()

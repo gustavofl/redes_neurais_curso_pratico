@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.patches import Polygon
 from matplotlib.collections import PatchCollection
@@ -26,7 +27,9 @@ def treinar_rede(dataset, rn=None):
 
     rn.treino(x, d, verbose=1, guardar_historico=1)
 
-    rn.plotar_aprendizado_animacao(x,d,titulo='Treino (%d épocas de treinamento)'%rn.epoca)
+    rn.plotar_animacao(x,d,titulo='Treino (%d épocas de treinamento)'%rn.epoca)
+    
+    rn.salvar_animacao(x,d,titulo='Treino (%d épocas de treinamento)'%rn.epoca,nome_arquivo='reta_2/animacao.mp4')
 
     return rn
 
@@ -53,7 +56,7 @@ def main():
     rn = treinar_rede(dataset_treino, rn=None)
     rn.salvar('reta_2/rn_reta_%s.rn'%str(sufixo))
 
-    testar_rede(rn, dataset_teste)
+    # testar_rede(rn, dataset_teste)
 
 if __name__ == "__main__":
     main()
