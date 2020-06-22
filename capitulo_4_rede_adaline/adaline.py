@@ -12,8 +12,9 @@ class Adaline:
         self.taxa_aprendizado = taxa_aprendizado
         self.fator_normalizacao = None
 
-        self.historico = []
-        self.plot_rn = PlotRN_2D(self, self.historico)
+        self.historico_pesos = []
+        self.historico_erro = []
+        self.plot_rn = PlotRN_2D(self, self.historico_pesos)
     
     def feedforward(self, x):
         return x.dot(np.transpose(self.pesos))
@@ -43,10 +44,15 @@ class Adaline:
             self.epoca += 1
             
             if(verbose):
-                print(self.epoca, erro)
+                w0,w1,w2 = self.pesos
+                # print('%04d - %.12f - [ %.12f , %.12f , %.12f ]'%(self.epoca, erro, -w1/w2, w0/w2))
+                # print('%04d - %.12f - [ %.12f , %.12f , %.12f ]'%(self.epoca, erro, w0, w1, w2))
+                # print(self.epoca, erro, -w1/w2, w0/w2)
+                print('%04d - %.12f'%(self.epoca, erro))
 
             if(guardar_historico and self.epoca%1 == 0):
-                self.historico.append(np.copy(self.pesos))
+                self.historico_pesos.append(np.copy(self.pesos))
+                self.historico_erro.append(erro)
 
     def classificar(self, x, salvar_imagem=False):
         x = np.copy(x)
@@ -59,15 +65,18 @@ class Adaline:
         return y
     
     def plotar_animacao(self, x=None, d=None, titulo=''):
-        if(len(self.historico) > 0):
+        if(len(self.historico_pesos) > 0):
             self.plot_rn.plotar_animacao(x, d, titulo=titulo)
     
     def salvar_animacao(self, x=None, d=None, titulo='', nome_arquivo=''):
-        if(len(self.historico) > 0):
+        if(len(self.historico_pesos) > 0):
             self.plot_rn.salvar_animacao(x, d, titulo=titulo, nome_arquivo=nome_arquivo)
 
     def plotar_aprendizado(self, x=None, d=None, titulo=''):
         self.plot_rn.plotar_aprendizado(x, d, titulo=titulo)
+
+    def plotar_curva_aprendizado(self, titulo=''):
+        self.plot_rn.plotar_curva_aprendizado(titulo=titulo)
     
     def salvar(self, caminho):
         dados = {

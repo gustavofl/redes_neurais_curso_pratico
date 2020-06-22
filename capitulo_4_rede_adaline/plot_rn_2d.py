@@ -12,6 +12,15 @@ class PlotRN_2D:
     def __init__(self, rn, buffer):
         self.rn = rn
         self.buffer = buffer
+
+    def plotar_curva_aprendizado(self, titulo=''):
+        matplotlib.use('GTK3Agg')
+
+        plt.plot(np.arange(len(self.rn.historico_erro)),self.rn.historico_erro)
+
+        plt.title(titulo)
+        plt.show()
+        plt.close('all')
     
     def plotar_aprendizado(self, x=None, d=None, titulo=''):
         matplotlib.use('GTK3Agg')

@@ -1,4 +1,5 @@
 import pickle
+import math
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -43,9 +44,22 @@ def txt_para_dataset(arquivo_origem, arquivo_destino):
 
     util.salvar_dados({'x':x,'d':d}, arquivo_destino)
 
-def gerar_dataset(arquivo_destino, func_ativacao, tamanho=300, valor_maximo=10):
-    x = np.random.rand(tamanho,3)*2*valor_maximo-valor_maximo
+def gerar_dataset(arquivo_destino, func_ativacao, tamanho=300):
+    x = np.random.rand(tamanho,3)*20-10
     x[:,0] = -1
+
+    d = func_ativacao(x[:,1], x[:,2])
+
+    salvar_dados({'x':x,'d':d}, arquivo_destino)
+
+def gerar_dataset_grid(arquivo_destino, func_ativacao, tamanho=400):
+    r = np.arange(-10, 10+1e-9, 20/(math.sqrt(tamanho)-1))
+    xx,yy = np.meshgrid( r , r )
+
+    x = np.empty([xx.size,3])
+    x[:,0] = -1
+    x[:,1] = xx.flatten()
+    x[:,2] = yy.flatten()
 
     d = func_ativacao(x[:,1], x[:,2])
 
