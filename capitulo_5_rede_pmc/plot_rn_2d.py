@@ -12,6 +12,39 @@ class PlotRN_2D:
     def __init__(self, rn, buffer):
         self.rn = rn
         self.buffer = buffer
+    
+    def plotar_dataset(self, x, y=None):
+        matplotlib.use('GTK3Agg')
+
+        fig = plt.figure()
+        ax = fig.add_subplot(111)
+
+        x = np.copy(x)
+
+        x,fator = util.normalizar(x, self.rn.fator_normalizacao)
+
+        #### CALCULAR CORES
+        if(type(y) != type(None)):
+            y = y[:,1]
+
+            # laranja   = (255,160,0)   = ( 1 , 0.6 , 0  )
+            # azul      = (0,0,255)     = ( 0 , 0   , 1. )
+            cores = np.empty([y.size,3])
+            cores[:,0] = (1-y)/2
+            cores[:,1] = (1-y)/3
+            cores[:,2] = (y+1)/2
+        else:
+            cores = np.zeros([y.size,3])
+
+        
+        #### PLOTAR PONTOS
+        plt.scatter(x[:,0], x[:,1], color=cores, s=10)
+
+        ax.set_xlim( -1.1 , 1.1)
+        ax.set_ylim( -1.1 , 1.1)
+
+        plt.show()
+        plt.close('all')
 
     def plotar_curva_aprendizado(self, titulo=''):
         matplotlib.use('GTK3Agg')
@@ -33,8 +66,8 @@ class PlotRN_2D:
                     eixos = ax[ci]
 
                 self.plotar_classes_aprendidas(eixos[ni], 1, self.rn.camadas[ci][ni])
-                ax[ni].set_xlim( -1*1.1 , 1*1.1 )
-                ax[ni].set_ylim( -1*1.1 , 1*1.1 )
+                ax[ni].set_xlim( -1.1 , 1.1 )
+                ax[ni].set_ylim( -1.1 , 1.1 )
 
         plt.show()
         plt.close('all')
@@ -42,21 +75,22 @@ class PlotRN_2D:
     def func_animacao(self, i, ax, para_salvar):
         camadas = self.buffer[i]
 
-        print('%d/%d'%(i,len(self.buffer)-1))
+        if(para_salvar or 1):
+            print('%d/%d'%(i,len(self.buffer)-1))
         
         patches = ()
         for ci in range(len(self.rn.topologia)-1):
             for ni in range(max(self.rn.topologia[:1])):
                 eixos = ax
                 if(len(self.rn.topologia)-1 > 1):
-                    eixos = ax[ci]
+                    eixos = ax[:,ci]
                 
                 if(para_salvar):
                     eixos[ni].clear()
 
                 patches += self.plotar_classes_aprendidas(eixos[ni], 1, camadas[ci][ni])
-                ax[ni].set_xlim( -1*1.1 , 1*1.1 )
-                ax[ni].set_ylim( -1*1.1 , 1*1.1 )
+                eixos[ni].set_xlim( -1*1.1 , 1*1.1 )
+                eixos[ni].set_ylim( -1*1.1 , 1*1.1 )
             
         return patches
 

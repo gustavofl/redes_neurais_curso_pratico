@@ -11,10 +11,11 @@ class PMC:
         self.taxa_aprendizado = taxa_aprendizado
         self.fator_normalizacao = None
 
-        self.gradientes = [] # como usar?
         self.topologia = topologia
+        self.vetores_forward = [] # usado no backpropagation
         self.camadas = []
         for i in range(1,len(topologia)):
+            self.vetores_forward.append((None,None))
             self.camadas.append(np.random.rand(topologia[i],topologia[i-1]+1))
         
         self.historico_camadas = []
@@ -26,19 +27,37 @@ class PMC:
             pesos = self.camadas[i]
 
             x = np.concatenate((np.ones([x[:,0].size,1])*-1,x),axis=1)
-            y = self.ativacao(x.dot(pesos.T))
-            x = y
+            I = x.dot(pesos.T)
+            Y = self.ativacao(I)
+            x = Y
 
-        return y
+            self.vetores_forward[i] = (I,Y)
+        
+        return Y
     
     def backward(self, x, d):
-        x = np.concatenate((np.ones([x[:,0].size,1])*-1,x),axis=1)
+        grad_camada_posterior = 0
+        
+        for i in range(len(self.camadas)-1,-1,-1):
+            # Verificando saida da camada anterior
+            if(i == 0):
+                Y_ant = x
+            else:
+                Y_ant = self.vetores_forward[i-1][1]
+            Y_ant = np.concatenate((np.ones([Y_ant[:,0].size,1])*-1,Y_ant),axis=1)
+            
+            # calculando gradientes da camada atual
+            I,Y = self.vetores_forward[i]
+            if(i == len(self.camadas)-1):
+                grad_local = (d-Y) * self.derivada_ativacao(I)
+            else:
+                grad_local = grad_camada_posterior.dot(self.camadas[i+1][:,1:]) * self.derivada_ativacao(I)
+            
+            # Armazenando gradiente para calculo na camada anterior
+            grad_camada_posterior = grad_local
 
-        I = x.dot(self.camadas[0].T)
-        Y = self.ativacao(I)
-        grad_local = (d-Y) * self.derivada_ativacao(I)
-
-        self.camadas[0] += self.taxa_aprendizado * grad_local.T.dot(x)
+            # Atualizando pesos da camada atual
+            self.camadas[i] += self.taxa_aprendizado * grad_local.T.dot(Y_ant)
 
     def ativacao(self, u, beta=0.5):
         # return 1/(1+math.e**(-beta*u)) # logistica
@@ -55,7 +74,7 @@ class PMC:
 
         erro_minimo = 1e-12
         ultimo_erro = 100
-        while(self.epoca <= 50):
+        while(self.epoca <= 2000):
             y = self.forward(x)
 
             erro = ((d-y)**2).sum()/float(d.size)

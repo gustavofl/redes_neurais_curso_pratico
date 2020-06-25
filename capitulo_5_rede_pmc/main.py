@@ -8,8 +8,8 @@ from pmc import PMC
 import util
 
 def equacao_reta(x, y):
-    # RETA: y = 0.25*x + 0.5
-    return y > -1*x + 5
+    return (x>0) * (y>0)
+    # return y > -x + 5
 
 def ativacao_reta(x, y):
     # degrau bipolar
@@ -24,9 +24,9 @@ def treinar_rede(dataset, rn=None):
     x,d = dataset
 
     if(rn == None):
-        rn = PMC(topologia=[2,2])
+        rn = PMC(topologia=[2,2,2])
 
-    rn.treinar(x, d, verbose=0, guardar_historico=1)
+    rn.treinar(x, d, verbose=1, guardar_historico=1)
 
     # rn.plotar_curva_aprendizado('Treino (%d épocas de treinamento)'%rn.epoca)
 
@@ -59,7 +59,9 @@ def main():
     dataset_teste = util.carregar_dataset('reta_1/dataset_teste_%s.data'%str(sufixo))
 
     rn=None
-    rn = PMC.carregar('reta_1/rn_reta_%s.rn'%str(sufixo))
+    # rn = PMC.carregar('reta_1/rn_reta_%s.rn'%str(sufixo))
+
+    # rn.plot_rn.plotar_dataset( dataset_treino[0] , dataset_treino[1] )
     
     rn = treinar_rede(dataset_treino, rn=rn)
     # rn.salvar('reta_1/rn_reta_%s.rn'%str(sufixo))
