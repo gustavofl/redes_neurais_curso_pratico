@@ -29,7 +29,7 @@ class PlotRN_2D:
         matplotlib.use('GTK3Agg')
         fig,ax = plt.subplots( max(self.rn.topologia[:1]) , len(self.rn.topologia)-1 )
 
-        self.plotar_rede_neural(ax)
+        self.plotar_rede_neural(ax, self.rn.camadas)
 
         plt.show()
         plt.close('all')
@@ -38,28 +38,10 @@ class PlotRN_2D:
         if(para_salvar or 1):
             print('%d/%d'%(i,len(self.buffer)-1))
         
-        poligonos_camada_anterior = []
-        poligonos = ()
-        for ci in range(len(self.rn.topologia)-1):
-            poligonos_camada_atual = []
-            for ni in range(max(self.rn.topologia[:1])):
-                eixos = ax
-                if(len(self.rn.topologia)-1 > 1):
-                    eixos = ax[:,ci]
-                
-                if(para_salvar):
-                    eixos[ni].clear()
+        pesos = self.buffer[i]
+        patches = self.plotar_rede_neural(ax, pesos)
 
-                poligonos_neuronio = self.plotar_classes_aprendidas(eixos[ni], 1, ci, ni, poligonos_camada_anterior)
-                poligonos += poligonos_neuronio
-                poligonos_camada_atual.append(poligonos_neuronio)
-
-                eixos[ni].set_xlim( -1.1 , 1.1 )
-                eixos[ni].set_ylim( -1.1 , 1.1 )
-            
-            poligonos_camada_anterior = poligonos_camada_atual[:]
-        
-        return poligonos
+        return patches
 
     def plotar_animacao(self, x=None, d=None, titulo=''):
         matplotlib.use('GTK3Agg')
@@ -82,48 +64,52 @@ class PlotRN_2D:
         
         animacao.save(nome_arquivo)
     
-    def plotar_rede_neural(self, ax):
+    def plotar_rede_neural(self, ax, pesos):
         patches = ()
         if(len(self.rn.topologia)-1 == 1):
-            patches += self.plotar_camada(ax, 0)
+            patches += self.plotar_camada(ax, 0, pesos)
         else:
             for ind_camada in range(len(self.rn.topologia)-1):
-                patches += self.plotar_camada(ax[:,ind_camada], ind_camada)
-        
+                patches += self.plotar_camada(ax[:,ind_camada], ind_camada, pesos)
+            
         return patches
 
-    def plotar_camada(self, ax, ind_camada):
-        patches = []
+    def plotar_camada(self, ax, ind_camada, pesos):
+        patches_camada = ()
+        patches_neoronios = []
+
         for ind_neoronio in range(self.rn.topologia[ind_camada+1]):
-            patches.append(self.plotar_neoronio(ax[ind_neoronio], ind_camada, ind_neoronio))
+            patches_neoronio = self.plotar_neoronio(ax[ind_neoronio], ind_camada, ind_neoronio, pesos)
+            patches_camada += patches_neoronio
+            patches_neoronios.append(patches_neoronio)
 
-        self.patches_camada_anterior = patches[:]
-        patches = tuple(np.array(patches).flatten())
+        self.patches_camada_anterior = patches_neoronios[:]
 
-        return patches
+        return patches_camada
     
-    def plotar_neoronio(self, ax, ind_camada, ind_neoronio):
+    def plotar_neoronio(self, ax, ind_camada, ind_neoronio, pesos):
         if(ind_camada == 0):
-            poligonos = self.plotar_neoronio_linear(ax, ind_camada, ind_neoronio)
+            poligonos = self.plotar_neoronio_linear(ax, ind_camada, ind_neoronio, pesos)
         else:
-            poligonos = self.plotar_neoronio_nao_linear(ax, ind_camada, ind_neoronio)
-        
-        pesos = self.rn.camadas[ind_camada][ind_neoronio]
+            poligonos = self.plotar_neoronio_nao_linear(ax, ind_camada, ind_neoronio, pesos)
+
+        pesos = pesos[ind_camada][ind_neoronio]
         patches = []
         for pol in poligonos:
-            if(util.classificar_poligono(pol, pesos) > 0):
-                patches += ax.fill(*pol.exterior.xy, c='blue', alpha=0.4)
-            else:
-                patches += ax.fill(*pol.exterior.xy, c='orange', alpha=0.4)
+            if(not pol.is_empty):
+                if(util.classificar_poligono(pol, pesos) > 0):
+                    patches += ax.fill(*pol.exterior.xy, c='blue', alpha=0.4)
+                else:
+                    patches += ax.fill(*pol.exterior.xy, c='orange', alpha=0.4)
 
         ax.set_xlim( -1.1 , 1.1 )
         ax.set_ylim( -1.1 , 1.1 )
 
         return tuple(patches)
     
-    def plotar_neoronio_linear(self, ax, ind_camada, ind_neoronio):
+    def plotar_neoronio_linear(self, ax, ind_camada, ind_neoronio, pesos):
         t = 1.5
-        pesos = self.rn.camadas[ind_camada][ind_neoronio]
+        pesos = pesos[ind_camada][ind_neoronio]
 
         area = sg.Polygon([(-t,-t),(-t,t),(t,t),(t,-t),(-t,-t)])
 
@@ -135,17 +121,19 @@ class PlotRN_2D:
 
         return poligonos
     
-    def plotar_neoronio_nao_linear(self, ax, ind_camada, ind_neoronio):
+    def plotar_neoronio_nao_linear(self, ax, ind_camada, ind_neoronio, pesos):
         extremos = [np.array([-1,1]) for i in range(self.rn.topologia[ind_camada])]
         extremos = np.meshgrid(*extremos,)
         extremos = np.array([ext.flatten() for ext in extremos]).T
         extremos = np.concatenate((np.ones([extremos[:,0].size,1])*-1,extremos),axis=1)
 
-        pesos = self.rn.camadas[ind_camada][ind_neoronio]
-        classificacao_extremos = util.pseudo_neoronio(extremos, pesos)
+        pesos_neoronio_atual = pesos[ind_camada][ind_neoronio]
+        classificacao_extremos = util.pseudo_neoronio(extremos, pesos_neoronio_atual)
+
+        quadrado_cheio = sg.Polygon([(-1.5,-1.5),(-1.5,1.5),(1.5,1.5),(1.5,-1.5)])
 
         # uniao das influencias da camada anterior no neoronio atual
-        uniao = None
+        uniao = sg.Polygon([])
         
         for i in range(classificacao_extremos.size):
             x = extremos[i][1:]
@@ -153,10 +141,10 @@ class PlotRN_2D:
 
             if(y == 1):
                 # influencia do neoronio i da camada anterior no neoronio ind_neoronio da camada atual
-                interseccao = None
+                interseccao = quadrado_cheio
     
                 for j in range(len(self.patches_camada_anterior)):
-                    pesos_camada_ant = self.rn.camadas[ind_camada-1][j]
+                    pesos_camada_ant = pesos[ind_camada-1][j]
                     neoronio = self.patches_camada_anterior[j]
 
                     # classe dos poligonos do neoronio atual que sera usado
@@ -169,20 +157,20 @@ class PlotRN_2D:
                         classe_poligono = util.classificar_poligono(pol, pesos_camada_ant)
 
                         if(classe_poligono == classe_poligonos):
-                            if(interseccao == None):
-                                interseccao = pol
-                            else:
-                                interseccao = interseccao.intersection(pol)
+                            interseccao = interseccao.intersection(pol)
             
-                if(uniao == None):
-                    uniao = interseccao
-                else:
-                    uniao = uniao.union(interseccao)
+                uniao = uniao.union(interseccao)
         
-        poligono_nao_classificado = sg.Polygon([(-1.5,-1.5),(-1.5,1.5),(1.5,1.5),(1.5,-1.5)])
+        poligono_nao_classificado = quadrado_cheio
         poligono_nao_classificado = poligono_nao_classificado.symmetric_difference(uniao)
 
-        return (uniao, poligono_nao_classificado)
+        poligonos = []
+        if(not uniao.is_empty):
+            poligonos.append(uniao)
+        if(not poligono_nao_classificado.is_empty):
+            poligonos.append(poligono_nao_classificado)
+        
+        return poligonos
     
     def plotar_dataset(self, x, y=None):
         matplotlib.use('GTK3Agg')

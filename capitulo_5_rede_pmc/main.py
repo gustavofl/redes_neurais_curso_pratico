@@ -30,11 +30,11 @@ def treinar_rede(dataset, rn=None):
 
     # rn.plotar_curva_aprendizado('Treino (%d épocas de treinamento)'%rn.epoca)
 
-    rn.plotar_aprendizado(titulo='Treino (%d épocas de treinamento)'%rn.epoca)
+    # rn.plotar_aprendizado(titulo='Treino (%d épocas de treinamento)'%rn.epoca)
     
     # rn.plotar_animacao(x,d,titulo='Treino (%d épocas de treinamento)'%rn.epoca)
     
-    # rn.salvar_animacao(x,d,titulo='Treino (%d épocas de treinamento)'%rn.epoca,nome_arquivo='reta_1/animacao.mp4')
+    rn.salvar_animacao(x,d,titulo='Treino (%d épocas de treinamento)'%rn.epoca,nome_arquivo='reta_1/animacao.mp4')
 
     return rn
 
@@ -66,14 +66,5 @@ def main():
 
     # testar_rede(rn, dataset_teste)
 
-def teste_pmc():
-    rn = PMC(topologia=[2,2])
-
-    x = np.array([[0.4,0.1],[0.1,0.4]])
-    d = np.array([[1,-1],[-1,1]])
-
-    rn.treinar(x,d,verbose=1)
-
 if __name__ == "__main__":
     main()
-    # teste_pmc()
