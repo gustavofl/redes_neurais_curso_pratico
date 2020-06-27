@@ -74,7 +74,7 @@ class PMC:
 
         erro_minimo = 1e-12
         ultimo_erro = 100
-        while(self.epoca <= 2000):
+        while(self.epoca <= 300):
             y = self.forward(x)
 
             erro = ((d-y)**2).sum()/float(d.size)

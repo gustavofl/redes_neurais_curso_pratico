@@ -60,8 +60,8 @@ def gerar_dataset_grid(arquivo_destino, func_ativacao, tamanho=400):
     x[:,1] = yy.flatten()
 
     d = np.empty([xx.size,2])
-    d[:,0] = -func_ativacao(x[:,0], x[:,1])
-    d[:,1] = func_ativacao(x[:,0], x[:,1])
+    d[:,0] = func_ativacao(x[:,0], x[:,1])
+    d[:,1] = -func_ativacao(x[:,0], x[:,1])
 
     salvar_dados({'x':x,'d':d}, arquivo_destino)
 
@@ -71,3 +71,18 @@ def carregar_dataset(arquivo):
     d = dados['d']
 
     return x,d
+
+def pseudo_neoronio(x, pesos):
+    # simula a classificacao de um neoronio a partir dos pesos dados
+    u = x.dot(np.transpose(pesos))
+    y = (u>=0)*2-1
+    return y
+
+def equacao_reduzida_reta(x, pesos):
+    # equacao reduzida da reta dada pelos pesos
+    w0,w1,w2 = pesos
+    return -w1/w2 * x + w0/w2
+
+def classificar_poligono(poligono, pesos):
+    centroide = np.array([-1,poligono.centroid.xy[0][0],poligono.centroid.xy[1][0]])
+    return pseudo_neoronio(centroide, pesos)

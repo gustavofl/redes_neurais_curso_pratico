@@ -30,13 +30,11 @@ def treinar_rede(dataset, rn=None):
 
     # rn.plotar_curva_aprendizado('Treino (%d épocas de treinamento)'%rn.epoca)
 
-    # rn.plotar_aprendizado(titulo='Treino (%d épocas de treinamento)'%rn.epoca)
+    rn.plotar_aprendizado(titulo='Treino (%d épocas de treinamento)'%rn.epoca)
     
-    rn.plotar_animacao(x,d,titulo='Treino (%d épocas de treinamento)'%rn.epoca)
+    # rn.plotar_animacao(x,d,titulo='Treino (%d épocas de treinamento)'%rn.epoca)
     
     # rn.salvar_animacao(x,d,titulo='Treino (%d épocas de treinamento)'%rn.epoca,nome_arquivo='reta_1/animacao.mp4')
-
-    print(rn.epoca)
 
     return rn
 
