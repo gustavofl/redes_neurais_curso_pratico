@@ -37,7 +37,11 @@ class PlotRN_2D:
     def func_animacao(self, i, ax, para_salvar):
         if(para_salvar or 1):
             print('%d/%d'%(i,len(self.buffer)-1))
-        
+            
+        if(para_salvar):
+            for eixo in ax.flatten():
+                eixo.clear()
+
         pesos = self.buffer[i]
         patches = self.plotar_rede_neural(ax, pesos)
 
