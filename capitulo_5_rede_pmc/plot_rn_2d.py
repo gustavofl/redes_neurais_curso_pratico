@@ -16,6 +16,22 @@ class PlotRN_2D:
         self.buffer = buffer
         self.patches_camada_anterior = []
 
+    def construir_subplots(self):
+        num_camadas = len(self.rn.topologia)-1
+        maior_camada = max(self.rn.topologia[1:])
+
+        fig,ax = plt.subplots( maior_camada, num_camadas )
+
+        # esconder neoronios que nao esta na topologia
+        # (pelo fato de os suplots ser em grid, sao criados eixos que nao estao na topologia)
+        if(num_camadas > 1):
+            for ind_camada in range(num_camadas):
+                for ind_neoronio in range(maior_camada):
+                    if(ind_neoronio >= self.rn.topologia[ind_camada+1]):
+                        ax[2,1].axis('off')
+
+        return fig,ax
+
     def plotar_curva_aprendizado(self, titulo=''):
         matplotlib.use('GTK3Agg')
 
@@ -27,7 +43,7 @@ class PlotRN_2D:
     
     def plotar_aprendizado(self, x=None, d=None, titulo=''):
         matplotlib.use('GTK3Agg')
-        fig,ax = plt.subplots( max(self.rn.topologia[:1]) , len(self.rn.topologia)-1 )
+        fig,ax = self.construir_subplots()
 
         self.plotar_rede_neural(ax, self.rn.camadas)
 
@@ -42,17 +58,18 @@ class PlotRN_2D:
             for eixo in ax.flatten():
                 eixo.clear()
 
-        pesos = self.buffer[i]
+        pesos = np.copy(self.buffer[i])
+
         patches = self.plotar_rede_neural(ax, pesos)
 
         return patches
 
     def plotar_animacao(self, x=None, d=None, titulo=''):
         matplotlib.use('GTK3Agg')
-        fig,ax = plt.subplots( max(self.rn.topologia[:1]) , len(self.rn.topologia)-1 )
+        fig,ax = self.construir_subplots()
 
         animacao = animation.FuncAnimation(fig, self.func_animacao, frames=len(self.buffer), 
-                                            fargs=(ax,False,), interval=50, blit=True, repeat=False)
+                                            fargs=(ax,False,), interval=200, blit=True, repeat=False)
         
         plt.show()
         plt.close('all')
@@ -75,6 +92,7 @@ class PlotRN_2D:
         else:
             for ind_camada in range(len(self.rn.topologia)-1):
                 patches += self.plotar_camada(ax[:,ind_camada], ind_camada, pesos)
+            
             
         return patches
 
@@ -101,7 +119,10 @@ class PlotRN_2D:
         patches = []
         for pol in poligonos:
             if(not pol.is_empty):
-                if(util.classificar_poligono(pol, pesos) > 0):
+                centroide = np.array(pol.centroid.xy).T
+                classif_pol = util.pseudo_classificar(self.rn, centroide, None, ind_camada, ind_neoronio)
+
+                if(classif_pol > 0):
                     patches += ax.fill(*pol.exterior.xy, c='blue', alpha=0.4)
                 else:
                     patches += ax.fill(*pol.exterior.xy, c='orange', alpha=0.4)

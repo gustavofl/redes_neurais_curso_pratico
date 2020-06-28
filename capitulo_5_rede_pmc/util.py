@@ -78,6 +78,21 @@ def pseudo_neoronio(x, pesos):
     y = (u>=0)*2-1
     return y
 
+def pseudo_classificar(rn, x, pesos=None, ind_camada=None, ind_neoronio=None):
+    backup_pesos_rn = np.copy(rn.camadas)
+    
+    if(pesos != None):
+        rn.camadas = pesos
+
+    y = rn.classificar(x, x_normalizado=True)
+
+    if(ind_camada != None and ind_neoronio != None):
+        y = rn.vetores_forward[ind_camada][1][0][ind_neoronio]
+    
+    rn.camadas = backup_pesos_rn
+    
+    return y
+
 def equacao_reduzida_reta(x, pesos):
     # equacao reduzida da reta dada pelos pesos
     w0,w1,w2 = pesos

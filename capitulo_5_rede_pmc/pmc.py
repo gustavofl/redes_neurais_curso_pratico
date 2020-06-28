@@ -6,7 +6,7 @@ import util
 
 class PMC:
 
-    def __init__(self, taxa_aprendizado=0.01, topologia=[2,2]):
+    def __init__(self, taxa_aprendizado=0.001, topologia=[2,2]):
         self.epoca = 0
         self.taxa_aprendizado = taxa_aprendizado
         self.fator_normalizacao = None
@@ -74,7 +74,7 @@ class PMC:
 
         erro_minimo = 1e-12
         ultimo_erro = 100
-        while(self.epoca <= 300):
+        while(self.epoca <= 2000):
             y = self.forward(x)
 
             erro = ((d-y)**2).sum()/float(d.size)
@@ -92,14 +92,16 @@ class PMC:
             self.epoca += 1
 
             if(guardar_historico and self.epoca%1 == 0):
-                self.historico_camadas.append(np.copy(self.camadas))
+                pesos = [np.copy(camada) for camada in self.camadas]
+                self.historico_camadas.append(pesos)
                 self.historico_erro.append(erro)
 
-    def classificar(self, x, salvar_imagem=False):
+    def classificar(self, x, salvar_imagem=False, x_normalizado=False):
         x = np.copy(x)
 
-        x,fator = util.normalizar(x,self.fator_normalizacao)
-
+        if(not x_normalizado):
+            x,fator = util.normalizar(x,self.fator_normalizacao)
+        
         u = self.forward(x)
         y = self.ativacao(u)
 

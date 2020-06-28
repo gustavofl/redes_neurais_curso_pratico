@@ -8,7 +8,8 @@ from pmc import PMC
 import util
 
 def equacao_reta(x, y):
-    return (x>0) * (y>0)
+    return (x>-5) * (x<5) * (y>-5) * (y<5)
+    # return (x>0) * (y>0) * (y>-x+5)
     # return y > -x + 5
 
 def ativacao_reta(x, y):
@@ -24,17 +25,17 @@ def treinar_rede(dataset, rn=None):
     x,d = dataset
 
     if(rn == None):
-        rn = PMC(topologia=[2,2,2])
+        rn = PMC(topologia=[2,8,4,2])
 
     rn.treinar(x, d, verbose=1, guardar_historico=1)
 
-    # rn.plotar_curva_aprendizado('Treino (%d épocas de treinamento)'%rn.epoca)
+    rn.plotar_curva_aprendizado('Treino (%d épocas de treinamento)'%rn.epoca)
 
-    # rn.plotar_aprendizado(titulo='Treino (%d épocas de treinamento)'%rn.epoca)
+    rn.plotar_aprendizado(titulo='Treino (%d épocas de treinamento)'%rn.epoca)
     
     # rn.plotar_animacao(x,d,titulo='Treino (%d épocas de treinamento)'%rn.epoca)
     
-    rn.salvar_animacao(x,d,titulo='Treino (%d épocas de treinamento)'%rn.epoca,nome_arquivo='reta_1/animacao.mp4')
+    # rn.salvar_animacao(x,d,titulo='Treino (%d épocas de treinamento)'%rn.epoca,nome_arquivo='reta_1/animacao.mp4')
 
     return rn
 
@@ -62,7 +63,7 @@ def main():
     # rn.plot_rn.plotar_dataset( dataset_treino[0] , dataset_treino[1] )
     
     rn = treinar_rede(dataset_treino, rn=rn)
-    # rn.salvar('reta_1/rn_reta_%s.rn'%str(sufixo))
+    rn.salvar('reta_1/rn_reta_%s.rn'%str(sufixo))
 
     # testar_rede(rn, dataset_teste)
 
